@@ -151,6 +151,19 @@ def get_date_key(dt: datetime = None) -> str:
     return dt.strftime('%Y-%m-%d')
 
 
+def convert_twitter_url(url: str) -> str:
+    """
+    Convert twitter:// protocol URLs to https://x.com URLs.
+    """
+    if url.startswith('twitter://trending/'):
+        trend_id = url.replace('twitter://trending/', '')
+        return f'https://x.com/i/trends/{trend_id}'
+    elif url.startswith('twitter://search/'):
+        query = url.replace('twitter://search/?query=', '')
+        return f'https://x.com/search?q={query}'
+    return url
+
+
 def create_digest_html(trending_data: list, date_str: str) -> str:
     """
     Create HTML content for daily trending digest.
@@ -184,7 +197,8 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
         
         for item in items:
             headline = item.get('headline', 'Trending Topic')
-            url = item.get('url', 'https://x.com/explore')
+            raw_url = item.get('url', 'https://x.com/explore')
+            url = convert_twitter_url(raw_url)
             description = item.get('description', '')
             post_count = item.get('postCount', 0)
             time_ago = item.get('timeAgo', '')
