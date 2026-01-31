@@ -2,7 +2,7 @@
 """
 Fetch X (Twitter) trending topics and generate RSS feed.
 Uses the bird CLI to fetch trending data.
-Maintains history to avoid duplicate entries in RSS readers.
+Generates one daily digest article containing all trending topics.
 """
 
 import json
@@ -17,7 +17,7 @@ from feedgen.feed import FeedGenerator
 
 
 HISTORY_FILE = 'trending_history.json'
-HISTORY_DAYS = 3  # Keep trending items for 3 days
+HISTORY_DAYS = 7  # Keep daily digests for 7 days
 
 
 def get_trending_data(auth_token: str, ct0: str, count: int = 20) -> list:
@@ -32,7 +32,7 @@ def get_trending_data(auth_token: str, ct0: str, count: int = 20) -> list:
     Returns:
         List of trending topic dictionaries
     """
-    # Run bird news command with authentication (removed --ai-only to get more results)
+    # Run bird news command with authentication
     cmd = [
         'npx', '@steipete/bird', 'news',
         '-n', str(count),
@@ -81,7 +81,7 @@ def load_history() -> dict:
     Load trending history from JSON file.
     
     Returns:
-        Dictionary mapping trending IDs to their first seen timestamp
+        Dictionary mapping dates to digest data
     """
     history_path = Path(HISTORY_FILE)
     if not history_path.exists():
@@ -90,7 +90,7 @@ def load_history() -> dict:
     try:
         with open(history_path, 'r', encoding='utf-8') as f:
             history = json.load(f)
-            print(f"✓ Loaded history with {len(history)} items")
+            print(f"✓ Loaded history with {len(history)} daily digests")
             return history
     except json.JSONDecodeError:
         print("Warning: Could not parse history file, starting fresh", file=sys.stderr)
@@ -102,11 +102,11 @@ def save_history(history: dict):
     Save trending history to JSON file.
     
     Args:
-        history: Dictionary mapping trending IDs to their first seen timestamp
+        history: Dictionary mapping dates to digest data
     """
     with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
         json.dump(history, f, indent=2, ensure_ascii=False)
-    print(f"✓ Saved history with {len(history)} items")
+    print(f"✓ Saved history with {len(history)} daily digests")
 
 
 def clean_old_history(history: dict, cutoff_date: datetime) -> dict:
@@ -114,7 +114,7 @@ def clean_old_history(history: dict, cutoff_date: datetime) -> dict:
     Remove history items older than the cutoff date.
     
     Args:
-        history: Dictionary mapping trending IDs to timestamps
+        history: Dictionary mapping dates to digest data
         cutoff_date: Remove items older than this date
         
     Returns:
@@ -123,139 +123,151 @@ def clean_old_history(history: dict, cutoff_date: datetime) -> dict:
     cleaned = {}
     removed_count = 0
     
-    for item_id, timestamp in history.items():
-        item_date = datetime.fromisoformat(timestamp)
-        if item_date >= cutoff_date:
-            cleaned[item_id] = timestamp
+    for date_key, digest_data in history.items():
+        digest_date = datetime.fromisoformat(digest_data['timestamp'])
+        if digest_date >= cutoff_date:
+            cleaned[date_key] = digest_data
         else:
             removed_count += 1
     
     if removed_count > 0:
-        print(f"✓ Removed {removed_count} old items from history")
+        print(f"✓ Removed {removed_count} old daily digests from history")
     
     return cleaned
 
 
-def merge_trending_with_history(new_items: list, history: dict) -> tuple[list, dict, int]:
+def get_date_key(dt: datetime = None) -> str:
     """
-    Merge new trending items with historical data.
+    Get date key in YYYY-MM-DD format.
     
     Args:
-        new_items: List of newly fetched trending topics
-        history: Existing history dictionary
+        dt: Datetime object (default: now in UTC)
         
     Returns:
-        Tuple of (all_items, updated_history, new_count)
+        Date string in YYYY-MM-DD format
     """
-    current_time = datetime.now(timezone.utc)
-    updated_history = history.copy()
-    new_count = 0
-    
-    # Track which items we've seen in this run
-    current_ids = set()
-    
-    # Process new items
-    all_items = []
-    for item in new_items:
-        item_id = item.get('id', '')
-        if not item_id:
-            continue
-        
-        current_ids.add(item_id)
-        
-        # Check if this is a new trending topic
-        if item_id not in history:
-            # New item: record first seen time
-            updated_history[item_id] = current_time.isoformat()
-            item['_first_seen'] = current_time.isoformat()
-            new_count += 1
-            print(f"  → New: {item.get('headline', 'Unknown')[:60]}")
-        else:
-            # Existing item: use original timestamp
-            item['_first_seen'] = history[item_id]
-        
-        all_items.append(item)
-    
-    print(f"✓ Found {new_count} new trending topics")
-    
-    return all_items, updated_history, new_count
+    if dt is None:
+        dt = datetime.now(timezone.utc)
+    return dt.strftime('%Y-%m-%d')
 
 
-def create_rss_feed(trending_data: list, output_path: str = 'trending.xml'):
+def create_digest_html(trending_data: list, date_str: str) -> str:
     """
-    Generate RSS feed from trending topics.
+    Create HTML content for daily trending digest.
     
     Args:
-        trending_data: List of trending topic dictionaries with _first_seen timestamps
+        trending_data: List of trending topic dictionaries
+        date_str: Date string for the digest
+        
+    Returns:
+        HTML string
+    """
+    html_parts = []
+    
+    # Header
+    html_parts.append(f'<h2>📊 X Trending Topics - {date_str}</h2>')
+    html_parts.append(f'<p><strong>Total trending topics:</strong> {len(trending_data)}</p>')
+    html_parts.append('<hr/>')
+    
+    # Group by category
+    categories = {}
+    for item in trending_data:
+        category = item.get('category', 'Other')
+        if category not in categories:
+            categories[category] = []
+        categories[category].append(item)
+    
+    # Render each category
+    for category, items in sorted(categories.items()):
+        html_parts.append(f'<h3>📂 {category}</h3>')
+        html_parts.append('<ol>')
+        
+        for item in items:
+            headline = item.get('headline', 'Trending Topic')
+            url = item.get('url', 'https://x.com/explore')
+            description = item.get('description', '')
+            post_count = item.get('postCount', 0)
+            time_ago = item.get('timeAgo', '')
+            
+            html_parts.append('<li>')
+            html_parts.append(f'<strong><a href="{url}" target="_blank">{headline}</a></strong>')
+            
+            if description:
+                html_parts.append(f'<br/><em>{description}</em>')
+            
+            metadata = []
+            if post_count:
+                metadata.append(f'{post_count:,} posts')
+            if time_ago:
+                metadata.append(f'Updated: {time_ago}')
+            
+            if metadata:
+                html_parts.append(f'<br/><small>{" • ".join(metadata)}</small>')
+            
+            html_parts.append('</li>')
+        
+        html_parts.append('</ol>')
+    
+    # Footer
+    html_parts.append('<hr/>')
+    html_parts.append(f'<p><small>Generated at {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}</small></p>')
+    
+    return '\n'.join(html_parts)
+
+
+def create_rss_feed(history: dict, output_path: str = 'trending.xml'):
+    """
+    Generate RSS feed from daily digest history.
+    
+    Args:
+        history: Dictionary mapping dates to digest data
         output_path: Output file path for RSS XML
     """
     fg = FeedGenerator()
     fg.id('https://github.com/YOUR_USERNAME/xTrendingRSS')
-    fg.title('X (Twitter) Daily Trending Topics')
+    fg.title('X (Twitter) Daily Trending Digest')
     fg.author({'name': 'X Trending RSS Bot', 'email': 'bot@example.com'})
     fg.link(href='https://x.com/explore', rel='alternate')
     fg.logo('https://abs.twimg.com/icons/apple-touch-icon-192x192.png')
-    fg.subtitle('Daily curated trending topics from X (Twitter)')
+    fg.subtitle('Daily digest of trending topics from X (Twitter)')
     fg.language('en')
     
     # Update timestamp
     update_time = datetime.now(timezone.utc)
     fg.updated(update_time)
     
-    # Sort by first seen time (newest first)
-    trending_data_sorted = sorted(
-        trending_data,
-        key=lambda x: x.get('_first_seen', ''),
+    # Sort history by date (newest first)
+    sorted_history = sorted(
+        history.items(),
+        key=lambda x: x[1]['timestamp'],
         reverse=True
     )
     
-    # Add trending topics as feed entries
-    for item in trending_data_sorted:
+    # Add each daily digest as a feed entry
+    for date_key, digest_data in sorted_history:
         fe = fg.add_entry()
         
-        # Use ID as unique identifier
-        item_id = item.get('id', '')
-        fe.id(f"x-trending-{item_id}")
+        # Unique identifier for this day's digest
+        fe.id(f"x-trending-digest-{date_key}")
         
-        # Title is the headline
-        headline = item.get('headline', 'Trending Topic')
-        fe.title(headline)
+        # Title with date
+        fe.title(f"X Trending Topics - {date_key}")
         
-        # Build description from available fields
-        description_parts = []
+        # HTML content
+        html_content = digest_data['html']
+        fe.content(html_content, type='html')
+        fe.description(f"Daily digest of {digest_data['count']} trending topics from X (Twitter)")
         
-        if item.get('category'):
-            description_parts.append(f"<strong>Category:</strong> {item['category']}")
+        # Link to X explore page
+        fe.link(href='https://x.com/explore')
         
-        if item.get('description'):
-            description_parts.append(f"<p>{item['description']}</p>")
+        # Use the digest timestamp
+        digest_time = datetime.fromisoformat(digest_data['timestamp'])
+        fe.published(digest_time)
+        fe.updated(digest_time)
         
-        if item.get('postCount'):
-            description_parts.append(f"<strong>Posts:</strong> {item['postCount']:,}")
-        
-        if item.get('timeAgo'):
-            description_parts.append(f"<strong>Updated:</strong> {item['timeAgo']}")
-        
-        description = '<br/>'.join(description_parts) if description_parts else headline
-        fe.description(description)
-        
-        # Link to the trend URL if available, otherwise to explore
-        url = item.get('url', 'https://x.com/explore')
-        fe.link(href=url)
-        
-        # Use first seen time as published date (key change!)
-        first_seen_str = item.get('_first_seen')
-        if first_seen_str:
-            first_seen = datetime.fromisoformat(first_seen_str)
-            fe.published(first_seen)
-            fe.updated(update_time)  # Updated time is current run time
-        else:
-            fe.published(update_time)
-            fe.updated(update_time)
-        
-        # Add category if available
-        if item.get('category'):
-            fe.category(term=item['category'])
+        # Add category
+        fe.category(term='Daily Digest')
     
     # Generate RSS 2.0 feed
     rss_str = fg.rss_str(pretty=True)
@@ -265,7 +277,7 @@ def create_rss_feed(trending_data: list, output_path: str = 'trending.xml'):
     output_file.write_bytes(rss_str)
     
     print(f"✓ RSS feed generated: {output_path}")
-    print(f"✓ Feed contains {len(trending_data)} items")
+    print(f"✓ Feed contains {len(history)} daily digests")
 
 
 def main():
@@ -287,7 +299,7 @@ def main():
     output_file = os.getenv('OUTPUT_FILE', 'trending.xml')
     
     print("=" * 60)
-    print("X Trending RSS Generator (with History Tracking)")
+    print("X Trending RSS Generator (Daily Digest)")
     print("=" * 60)
     
     # Load existing history
@@ -298,25 +310,41 @@ def main():
     history = clean_old_history(history, cutoff_date)
     
     # Fetch trending data
-    new_trending = get_trending_data(auth_token, ct0, trending_count)
+    trending_data = get_trending_data(auth_token, ct0, trending_count)
     
-    if not new_trending:
+    if not trending_data:
         print("No trending data to process. Exiting.")
         sys.exit(0)
     
-    # Merge with history
-    all_trending, updated_history, new_count = merge_trending_with_history(
-        new_trending, history
-    )
+    # Get today's date key
+    today_key = get_date_key()
+    current_time = datetime.now(timezone.utc)
+    
+    # Check if we already have today's digest
+    if today_key in history:
+        print(f"⚠️  Daily digest for {today_key} already exists")
+        print(f"   Updating with latest data...")
+    
+    # Create HTML digest
+    html_content = create_digest_html(trending_data, today_key)
+    
+    # Store in history
+    history[today_key] = {
+        'timestamp': current_time.isoformat(),
+        'count': len(trending_data),
+        'html': html_content
+    }
+    
+    print(f"✓ Created daily digest for {today_key} with {len(trending_data)} topics")
     
     # Save updated history
-    save_history(updated_history)
+    save_history(history)
     
     # Generate RSS feed
-    create_rss_feed(all_trending, output_file)
+    create_rss_feed(history, output_file)
     
     print("=" * 60)
-    print(f"✓ Done! ({new_count} new, {len(all_trending)} total)")
+    print(f"✓ Done! (1 digest, {len(history)} total in feed)")
     print("=" * 60)
 
 
