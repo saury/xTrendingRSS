@@ -30,7 +30,6 @@ def get_trending_data(auth_token: str, ct0: str, count: int = 20) -> list:
     # Run bird news command with authentication
     cmd = [
         'npx', '@steipete/bird', 'news',
-        '--ai-only',  # Filter to only AI-curated news
         '-n', str(count),
         '--json',
         '--auth-token', auth_token,
