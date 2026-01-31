@@ -229,19 +229,27 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
     return '\n'.join(html_parts)
 
 
-def create_rss_feed(history: dict, output_path: str = 'trending.xml'):
+def create_rss_feed(history: dict, output_path: str = 'trending.xml', feed_url: str = None):
     """
     Generate RSS feed from daily digest history.
     
     Args:
         history: Dictionary mapping dates to digest data
         output_path: Output file path for RSS XML
+        feed_url: Self-referencing URL for the RSS feed
     """
     fg = FeedGenerator()
     fg.id('https://github.com/YOUR_USERNAME/xTrendingRSS')
     fg.title('X (Twitter) Daily Trending Digest')
     fg.author({'name': 'X Trending RSS Bot', 'email': 'bot@example.com'})
+    
+    # Add self-referencing link first
+    if feed_url:
+        fg.link(href=feed_url, rel='self')
+    
+    # Main channel link (must be last for feedgen)
     fg.link(href='https://x.com/explore', rel='alternate')
+    
     fg.logo('https://abs.twimg.com/icons/apple-touch-icon-192x192.png')
     fg.subtitle('Daily digest of trending topics from X (Twitter)')
     fg.language('en')
@@ -355,7 +363,8 @@ def main():
     save_history(history)
     
     # Generate RSS feed
-    create_rss_feed(history, output_file)
+    feed_url = os.getenv('FEED_URL', 'https://raw.githubusercontent.com/YOUR_USERNAME/xTrendingRSS/main/trending.xml')
+    create_rss_feed(history, output_file, feed_url)
     
     print("=" * 60)
     print(f"✓ Done! (1 digest, {len(history)} total in feed)")
