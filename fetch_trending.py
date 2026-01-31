@@ -275,9 +275,9 @@ def create_rss_feed(history: dict, output_path: str = 'trending.xml', feed_url: 
         # Title with date
         fe.title(f"X Trending Topics - {date_key}")
         
-        # HTML content
+        # HTML content - use CDATA to prevent escaping issues in RSS readers
         html_content = digest_data['html']
-        fe.content(html_content, type='html')
+        fe.content(html_content, type='CDATA')
         fe.description(f"Daily digest of {digest_data['count']} trending topics from X (Twitter)")
         
         # Link to X explore page
