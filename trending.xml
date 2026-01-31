@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">
+  <channel>
+    <title>X (Twitter) Daily Trending Digest</title>
+    <link>https://x.com/explore</link>
+    <description>Daily digest of trending topics from X (Twitter)</description>
+    <docs>http://www.rssboard.org/rss-specification</docs>
+    <generator>python-feedgen</generator>
+    <image>
+      <url>https://abs.twimg.com/icons/apple-touch-icon-192x192.png</url>
+      <title>X (Twitter) Daily Trending Digest</title>
+      <link>https://x.com/explore</link>
+    </image>
+    <language>en</language>
+    <lastBuildDate>Sat, 31 Jan 2026 09:40:56 +0000</lastBuildDate>
+    <item>
+      <title>X Trending Topics - 2026-01-31</title>
+      <link>https://x.com/explore</link>
+      <description>Daily digest of 20 trending topics from X (Twitter)</description>
+      <content:encoded>&lt;h2&gt;📊 X Trending Topics - 2026-01-31&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Total trending topics:&lt;/strong&gt; 20&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h3&gt;📂 AI · News&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://trending/2016926645894983984" target="_blank"&gt;Moltbook Bot Network Draws 147,000 AI Agents in Days&lt;/a&gt;&lt;/strong&gt;
+&lt;br/&gt;&lt;small&gt;62,000 posts • Updated: 1 day ago&lt;/small&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 AI · Other&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://trending/2016769746071322912" target="_blank"&gt;Google DeepMind Launches Project Genie for AI-Generated 3D Worlds&lt;/a&gt;&lt;/strong&gt;
+&lt;br/&gt;&lt;small&gt;94,000 posts • Updated: 2 days ago&lt;/small&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://trending/2016561309891059795" target="_blank"&gt;Starmer Secures Visa-Free Travel for Brits to China After Xi Meeting&lt;/a&gt;&lt;/strong&gt;
+&lt;br/&gt;&lt;small&gt;271,000 posts • Updated: 2 days ago&lt;/small&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://trending/2017104892721082774" target="_blank"&gt;Don Lemon Arrested Over Church Protest Coverage, Released Without Bond&lt;/a&gt;&lt;/strong&gt;
+&lt;br/&gt;&lt;small&gt;2,100,000 posts • Updated: 1 day ago&lt;/small&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://trending/2016929842793783776" target="_blank"&gt;EU Labels Iran's IRGC a Terrorist Group Over Deadly Crackdown&lt;/a&gt;&lt;/strong&gt;
+&lt;br/&gt;&lt;small&gt;403,000 posts • Updated: 1 day ago&lt;/small&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 AI · Sports&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://trending/2016665407881388286" target="_blank"&gt;Arsenal Go Unbeaten Through Champions League League Phase with Eight Wins&lt;/a&gt;&lt;/strong&gt;
+&lt;br/&gt;&lt;small&gt;159,000 posts • Updated: 2 days ago&lt;/small&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 Business &amp; finance · Trending&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%23Silver&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;#Silver&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 News · Trending&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%22Don+Lemon%22&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Don Lemon&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 Politics · Trending&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=Gaza&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Gaza&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=Britain&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Britain&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%22First+Amendment%22&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;First Amendment&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%23TrumpEpsteinCoverup&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;#TrumpEpsteinCoverup&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%22Melania+Trump%22&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Melania Trump&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%22Lindsey+Graham%22&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Lindsey Graham&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%22First+Lady%22&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;First Lady&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=Clinton&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Clinton&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=Senate&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;Senate&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%22The+DOJ%22&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;The DOJ&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 Trending&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="https://x.com/explore" target="_blank"&gt;目黒蓮とみずほで新生活&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;📂 Trending in Hong Kong SAR China&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;strong&gt;&lt;a href="twitter://search/?query=%23SailubPon&amp;src=trend_click&amp;pc=true&amp;vertical=trends" target="_blank"&gt;#SailubPon&lt;/a&gt;&lt;/strong&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr/&gt;
+&lt;p&gt;&lt;small&gt;Generated at 2026-01-31 09:40 UTC&lt;/small&gt;&lt;/p&gt;</content:encoded>
+      <guid isPermaLink="false">x-trending-digest-2026-01-31</guid>
+      <category>Daily Digest</category>
+      <pubDate>Sat, 31 Jan 2026 09:40:56 +0000</pubDate>
+    </item>
+  </channel>
+</rss>
