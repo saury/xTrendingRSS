@@ -1,0 +1,9 @@
+{
+  "name": "x-trending-rss",
+  "version": "1.0.0",
+  "description": "Daily X (Twitter) trending topics RSS feed",
+  "private": true,
+  "dependencies": {
+    "@steipete/bird": "^0.8.0"
+  }
+}
