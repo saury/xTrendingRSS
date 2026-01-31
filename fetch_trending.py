@@ -151,16 +151,39 @@ def get_date_key(dt: datetime = None) -> str:
     return dt.strftime('%Y-%m-%d')
 
 
-def convert_twitter_url(url: str) -> str:
+def convert_twitter_url(url: str, headline: str = '') -> str:
     """
     Convert twitter:// protocol URLs to https://x.com URLs.
+    
+    Args:
+        url: Original URL from bird CLI (may be twitter:// protocol)
+        headline: Topic headline (used as fallback for search)
+        
+    Returns:
+        Valid https://x.com URL
     """
-    if url.startswith('twitter://trending/'):
-        trend_id = url.replace('twitter://trending/', '')
-        return f'https://x.com/i/trends/{trend_id}'
-    elif url.startswith('twitter://search/'):
+    import urllib.parse
+    
+    if url.startswith('twitter://search/'):
+        # Convert twitter://search/?query=... to https://x.com/search?q=...
         query = url.replace('twitter://search/?query=', '')
         return f'https://x.com/search?q={query}'
+    elif url.startswith('twitter://trending/'):
+        # twitter://trending/{id} is not a public URL format
+        # Use headline to create a search query instead
+        if headline:
+            query = urllib.parse.quote(headline)
+            return f'https://x.com/search?q={query}&src=trend_click'
+        # Fallback to explore page
+        return 'https://x.com/explore'
+    elif url.startswith('eventsummary-'):
+        # Event summary IDs also need to use headline as search
+        if headline:
+            query = urllib.parse.quote(headline)
+            return f'https://x.com/search?q={query}&src=trend_click'
+        return 'https://x.com/explore'
+    
+    # Return URL as-is if it's already a valid https:// URL
     return url
 
 
@@ -197,8 +220,8 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
         
         for item in items:
             headline = item.get('headline', 'Trending Topic')
-            raw_url = item.get('url', 'https://x.com/explore')
-            url = convert_twitter_url(raw_url)
+            raw_url = item.get('url', item.get('id', 'https://x.com/explore'))
+            url = convert_twitter_url(raw_url, headline)
             description = item.get('description', '')
             post_count = item.get('postCount', 0)
             time_ago = item.get('timeAgo', '')
