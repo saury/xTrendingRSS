@@ -5,7 +5,7 @@
 ## ✨ 特色功能
 
 - 📊 **每日摘要** - 所有 trending 整合到一篇文章
-- 🤖 **AI 增强** - 使用 OpenCode GLM-4 模型生成中文描述（可选）
+- 🤖 **AI 增强** - 使用智谱 AI GLM-4 模型生成中文描述（可选）
 - 🗂️ **分类整理** - 按类别自动分组（AI·News, Politics, Sports 等）
 - 📈 **趋势追踪** - 保留 7 天历史
 - 🔔 **通知友好** - 每天 1 篇文章，而非 20 条推送
@@ -17,7 +17,7 @@
 
 - 🤖 40-60 字的中文摘要
 - 突出关键亮点和潜在影响
-- 使用 OpenCode 的免费 GLM-4 模型（`opencode/glm-4.7-free`）
+- 使用智谱 AI 的免费 GLM-4-Flash 模型
 
 **示例效果：**
 
@@ -28,8 +28,6 @@
    🤖 AI 摘要：比特币价格突破历史新高，市场情绪高涨，投资者密切关注其对全球金融市场的影响...
    62,000 posts • Updated: 2 hours ago
 ```
-
-详细配置请查看 [AI_ENHANCEMENT.md](./AI_ENHANCEMENT.md)
 
 ## 📱 使用效果
 
@@ -144,7 +142,7 @@ X Trending RSS Generator (Daily Digest)
 ============================================================
 ✓ Loaded history with 7 daily digests
 ✓ Fetched 20 trending topics
-🤖 Generating AI summaries with OpenCode's GLM-4 model...
+🤖 Generating AI summaries with ZhipuAI GLM-4 model...
   [1/20] Processing: Bitcoin Price Surge...
       ✓ 比特币价格突破历史新高，市场情绪高涨...
   [2/20] Processing: AI Regulation News...

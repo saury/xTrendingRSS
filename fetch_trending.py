@@ -3,7 +3,7 @@
 Fetch X (Twitter) trending topics and generate RSS feed.
 Uses the bird CLI to fetch trending data.
 Generates one daily digest article containing all trending topics.
-AI-enhanced with OpenCode's free model (GLM-4) to generate Chinese summaries.
+AI-enhanced with ZhipuAI GLM-4-Flash model to generate Chinese summaries.
 """
 
 import json
@@ -31,8 +31,7 @@ HISTORY_DAYS = 7  # Keep daily digests for 7 days
 
 def enhance_with_ai(topic: dict) -> str:
     """
-    Use OpenCode's GLM-4 free model (via ZhipuAI SDK) to generate Chinese summary.
-    This is the same model that opencode/glm-4.7-free uses.
+    Use ZhipuAI GLM-4-Flash model to generate Chinese summary.
     
     Args:
         topic: Trending topic dictionary with headline, category, description, etc.
@@ -43,7 +42,6 @@ def enhance_with_ai(topic: dict) -> str:
     if not ZHIPUAI_AVAILABLE:
         return ''
     
-    # Get API key from environment (compatible with OpenCode's configuration)
     api_key = os.getenv('ZHIPUAI_API_KEY', 'free-api-key-for-demo')
     
     headline = topic.get('headline', '')
@@ -73,7 +71,7 @@ def enhance_with_ai(topic: dict) -> str:
         client = ZhipuAI(api_key=api_key)
         
         response = client.chat.completions.create(
-            model="glm-4-flash",  # Free model, same as opencode/glm-4.7-free
+            model="glm-4-flash",
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -137,7 +135,7 @@ def get_trending_data(auth_token: str, ct0: str, count: int = 20, enable_ai: boo
         
         # Enhance with AI summaries if enabled
         if enable_ai and ZHIPUAI_AVAILABLE:
-            print("🤖 Generating AI summaries with OpenCode's GLM-4 model...")
+            print("🤖 Generating AI summaries with ZhipuAI GLM-4 model...")
             for i, topic in enumerate(trending_data, 1):
                 print(f"  [{i}/{len(trending_data)}] Processing: {topic.get('headline', 'N/A')[:40]}...")
                 summary = enhance_with_ai(topic)
@@ -295,7 +293,7 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
     # Check if AI summaries are available
     has_ai_summaries = any(item.get('ai_summary_zh') for item in trending_data)
     if has_ai_summaries:
-        html_parts.append('<p><em>🤖 AI-enhanced with Chinese summaries powered by OpenCode GLM-4</em></p>')
+        html_parts.append('<p><em>🤖 AI-enhanced with Chinese summaries powered by ZhipuAI GLM-4</em></p>')
     
     html_parts.append('<hr/>')
     
@@ -349,7 +347,7 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
     html_parts.append('<hr/>')
     html_parts.append(f'<p><small>Generated at {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}</small></p>')
     if has_ai_summaries:
-        html_parts.append('<p><small>AI summaries generated using OpenCode\'s GLM-4 free model (compatible with opencode/glm-4.7-free)</small></p>')
+        html_parts.append('<p><small>AI summaries generated using ZhipuAI GLM-4-Flash model</small></p>')
     
     return '\n'.join(html_parts)
 
