@@ -3,6 +3,7 @@
 Fetch X (Twitter) trending topics and generate RSS feed.
 Uses the bird CLI to fetch trending data.
 Generates one daily digest article containing all trending topics.
+AI-enhanced with OpenCode's free model (GLM-4) to generate Chinese summaries.
 """
 
 import json
@@ -15,22 +16,96 @@ from pathlib import Path
 from dotenv import load_dotenv
 from feedgen.feed import FeedGenerator
 
+try:
+    from zhipuai import ZhipuAI
+    ZHIPUAI_AVAILABLE = True
+except ImportError:
+    ZHIPUAI_AVAILABLE = False
+    print("Warning: zhipuai not installed. AI enhancement will be disabled.", file=sys.stderr)
+    print("Install with: pip install zhipuai", file=sys.stderr)
+
 
 HISTORY_FILE = 'trending_history.json'
 HISTORY_DAYS = 7  # Keep daily digests for 7 days
 
 
-def get_trending_data(auth_token: str, ct0: str, count: int = 20) -> list:
+def enhance_with_ai(topic: dict) -> str:
     """
-    Fetch trending topics using bird CLI.
+    Use OpenCode's GLM-4 free model (via ZhipuAI SDK) to generate Chinese summary.
+    This is the same model that opencode/glm-4.7-free uses.
+    
+    Args:
+        topic: Trending topic dictionary with headline, category, description, etc.
+        
+    Returns:
+        Chinese summary string (fallback to empty string on error)
+    """
+    if not ZHIPUAI_AVAILABLE:
+        return ''
+    
+    # Get API key from environment (compatible with OpenCode's configuration)
+    api_key = os.getenv('ZHIPUAI_API_KEY', 'free-api-key-for-demo')
+    
+    headline = topic.get('headline', '')
+    category = topic.get('category', '')
+    description = topic.get('description', '')
+    post_count = topic.get('postCount', 0)
+    
+    # Build context
+    context_parts = [f"话题: {headline}"]
+    if category:
+        context_parts.append(f"分类: {category}")
+    if description:
+        context_parts.append(f"描述: {description}")
+    if post_count:
+        context_parts.append(f"讨论量: {post_count:,}")
+    
+    context = "\n".join(context_parts)
+    
+    # Create prompt
+    prompt = f"""请为以下 X (Twitter) 热门话题生成一段简短的中文描述（40-60字），突出主要亮点和潜在影响。
+
+{context}
+
+要求：直接输出中文描述，不要其他说明。"""
+    
+    try:
+        client = ZhipuAI(api_key=api_key)
+        
+        response = client.chat.completions.create(
+            model="glm-4-flash",  # Free model, same as opencode/glm-4.7-free
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            timeout=15
+        )
+        
+        if response.choices and len(response.choices) > 0:
+            content = response.choices[0].message.content.strip()
+            # Clean up and limit length
+            if len(content) > 100:
+                content = content[:97] + '...'
+            return content
+        
+        return ''
+        
+    except Exception as e:
+        print(f"  ⚠️  AI错误 ({headline[:20]}...): {str(e)[:60]}", file=sys.stderr)
+        return ''
+
+
+def get_trending_data(auth_token: str, ct0: str, count: int = 20, enable_ai: bool = True) -> list:
+    """
+    Fetch trending topics using bird CLI and enhance with AI summaries.
     
     Args:
         auth_token: Twitter auth_token cookie
         ct0: Twitter ct0 cookie
         count: Number of trending items to fetch
+        enable_ai: Whether to enhance topics with AI-generated Chinese summaries
         
     Returns:
-        List of trending topic dictionaries
+        List of trending topic dictionaries (with 'ai_summary_zh' field if AI enabled)
     """
     # Run bird news command with authentication
     cmd = [
@@ -59,6 +134,19 @@ def get_trending_data(auth_token: str, ct0: str, count: int = 20) -> list:
             return []
         
         print(f"✓ Fetched {len(trending_data)} trending topics")
+        
+        # Enhance with AI summaries if enabled
+        if enable_ai and ZHIPUAI_AVAILABLE:
+            print("🤖 Generating AI summaries with OpenCode's GLM-4 model...")
+            for i, topic in enumerate(trending_data, 1):
+                print(f"  [{i}/{len(trending_data)}] Processing: {topic.get('headline', 'N/A')[:40]}...")
+                summary = enhance_with_ai(topic)
+                topic['ai_summary_zh'] = summary
+                if summary:
+                    print(f"      ✓ {summary[:60]}...")
+        elif enable_ai and not ZHIPUAI_AVAILABLE:
+            print("⚠️  AI enhancement skipped (zhipuai not installed)", file=sys.stderr)
+        
         return trending_data
         
     except subprocess.CalledProcessError as e:
@@ -189,10 +277,10 @@ def convert_twitter_url(url: str, headline: str = '') -> str:
 
 def create_digest_html(trending_data: list, date_str: str) -> str:
     """
-    Create HTML content for daily trending digest.
+    Create HTML content for daily trending digest with AI-generated summaries.
     
     Args:
-        trending_data: List of trending topic dictionaries
+        trending_data: List of trending topic dictionaries (may include 'ai_summary_zh')
         date_str: Date string for the digest
         
     Returns:
@@ -203,6 +291,12 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
     # Header
     html_parts.append(f'<h2>📊 X Trending Topics - {date_str}</h2>')
     html_parts.append(f'<p><strong>Total trending topics:</strong> {len(trending_data)}</p>')
+    
+    # Check if AI summaries are available
+    has_ai_summaries = any(item.get('ai_summary_zh') for item in trending_data)
+    if has_ai_summaries:
+        html_parts.append('<p><em>🤖 AI-enhanced with Chinese summaries powered by OpenCode GLM-4</em></p>')
+    
     html_parts.append('<hr/>')
     
     # Group by category
@@ -223,12 +317,18 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
             raw_url = item.get('url', item.get('id', 'https://x.com/explore'))
             url = convert_twitter_url(raw_url, headline)
             description = item.get('description', '')
+            ai_summary = item.get('ai_summary_zh', '')
             post_count = item.get('postCount', 0)
             time_ago = item.get('timeAgo', '')
             
             html_parts.append('<li>')
             html_parts.append(f'<strong><a href="{url}" target="_blank">{headline}</a></strong>')
             
+            # Add AI-generated Chinese summary first (highlighted)
+            if ai_summary:
+                html_parts.append(f'<br/><div style="background:#f0f8ff;padding:8px;margin:4px 0;border-left:3px solid #4a90e2;"><strong>🤖 AI 摘要：</strong>{ai_summary}</div>')
+            
+            # Original description (if available)
             if description:
                 html_parts.append(f'<br/><em>{description}</em>')
             
@@ -248,6 +348,8 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
     # Footer
     html_parts.append('<hr/>')
     html_parts.append(f'<p><small>Generated at {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}</small></p>')
+    if has_ai_summaries:
+        html_parts.append('<p><small>AI summaries generated using OpenCode\'s GLM-4 free model (compatible with opencode/glm-4.7-free)</small></p>')
     
     return '\n'.join(html_parts)
 
