@@ -1,0 +1,43 @@
+name: Test Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    # Run tests when PR is ready for review or when new commits are pushed
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  test:
+    # Skip tests if PR is in draft mode
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run tests with pytest
+        run: |
+          python -m pytest test_fetch_trending.py -v --tb=short
+      
+      - name: Test summary
+        if: always()
+        run: |
+          echo "Tests completed for Python ${{ matrix.python-version }}"
