@@ -2,7 +2,8 @@ name: Update X Trending RSS Feed
 
 on:
   schedule:
-    # Run daily at 22:00 UTC (6:00 AM Beijing time)
+    # Run daily at 22:00 UTC = 06:00 Beijing time (UTC+8) next day
+    # The RSS feed will use Beijing time for date generation
     - cron: "0 22 * * *"
   workflow_dispatch: # Allow manual trigger
 
