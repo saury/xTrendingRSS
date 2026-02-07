@@ -120,7 +120,7 @@ https://raw.githubusercontent.com/YOUR_USERNAME/xTrendingRSS/main/trending.xml
 
 ```bash
 # 1. 安装依赖
-pip install -r requirements.txt  # feedgen, python-dotenv, zhipuai
+pip install -r requirements.txt  # feedgen, python-dotenv, zhipuai, pytest
 npm install                      # bird CLI
 
 # 2. 配置环境变量
@@ -130,7 +130,10 @@ cp .env.example .env
 #   - TWITTER_CT0（必需）
 #   - ZHIPUAI_API_KEY（可选，启用 AI 增强）
 
-# 3. 运行
+# 3. 运行测试
+python -m pytest test_fetch_trending.py -v
+
+# 4. 运行主程序
 python fetch_trending.py
 ```
 
@@ -180,6 +183,7 @@ HISTORY_DAYS = 7  # 历史保留天数
 - **feedgen** - RSS 2.0 生成
 - **bird CLI** - X (Twitter) GraphQL 数据抓取
 - **GitHub Actions** - 自动化调度
+- **pytest** - 测试框架
 
 **RSS 文章结构：**
 
@@ -195,18 +199,67 @@ HISTORY_DAYS = 7  # 历史保留天数
 3. feedgen 生成 RSS → trending.xml
 4. GitHub Actions 自动提交
 
+## 🧪 测试
+
+### 运行测试
+
+```bash
+# 运行所有测试
+python -m pytest test_fetch_trending.py -v
+
+# 运行特定测试类
+python -m pytest test_fetch_trending.py::TestTimezoneHandling -v
+
+# 显示详细输出
+python -m pytest test_fetch_trending.py -v --tb=short
+```
+
+### 测试覆盖
+
+✅ **15 个测试** 覆盖以下功能：
+
+1. **时区处理** (5 tests)
+   - 北京时间日期生成（UTC+8）
+   - 年份跨越（12月31日 → 1月1日）
+   - 月份跨越（2月28日 → 3月1日）
+   - 默认使用北京时间
+
+2. **URL 转换** (6 tests)
+   - Twitter 搜索 URL 转换
+   - Trending URL 转换
+   - Event Summary 转换
+   - HTTPS URL 保持不变
+
+3. **历史管理** (3 tests)
+   - 加载/保存历史记录
+   - 清理旧数据
+
+4. **日期格式** (1 test)
+   - YYYY-MM-DD 格式验证
+
+### GitHub Actions 自动测试
+
+每个 Pull Request 都会自动运行测试：
+
+- ✅ Python 3.9, 3.10, 3.11, 3.12 全版本测试
+- ✅ 仅在 PR ready for review 时运行
+- ✅ 测试失败时阻止合并
+- ✅ 查看测试结果：`Actions` → `Test Pull Request`
+
 ## 📁 项目文件
 
 ```
 xTrendingRSS/
-├── fetch_trending.py      # 主程序
-├── requirements.txt       # Python 依赖
-├── package.json          # Node.js 依赖 (bird CLI)
-├── .env.example          # 环境变量模板
+├── fetch_trending.py         # 主程序
+├── test_fetch_trending.py    # 测试套件
+├── requirements.txt          # Python 依赖
+├── package.json             # Node.js 依赖 (bird CLI)
+├── .env.example             # 环境变量模板
 ├── .github/workflows/
-│   └── update-rss.yml    # GitHub Actions 配置
-├── trending.xml          # RSS feed (自动生成)
-└── trending_history.json # 历史记录 (自动生成)
+│   ├── update-rss.yml       # RSS 更新 workflow
+│   └── test-pr.yml          # PR 测试 workflow
+├── trending.xml             # RSS feed (自动生成)
+└── trending_history.json    # 历史记录 (自动生成)
 ```
 
 ## ⚠️ 注意事项
