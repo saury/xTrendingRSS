@@ -27,6 +27,7 @@ except ImportError:
 
 HISTORY_FILE = 'trending_history.json'
 HISTORY_DAYS = 7  # Keep daily digests for 7 days
+TIMEZONE_OFFSET = 8  # Beijing time (UTC+8)
 
 
 def enhance_with_ai(topic: dict) -> str:
@@ -224,16 +225,17 @@ def clean_old_history(history: dict, cutoff_date: datetime) -> dict:
 
 def get_date_key(dt: datetime = None) -> str:
     """
-    Get date key in YYYY-MM-DD format.
+    Get date key in YYYY-MM-DD format using Beijing time (UTC+8).
     
     Args:
-        dt: Datetime object (default: now in UTC)
+        dt: Datetime object (default: now in UTC+8)
         
     Returns:
         Date string in YYYY-MM-DD format
     """
     if dt is None:
-        dt = datetime.now(timezone.utc)
+        # Get current time in Beijing timezone (UTC+8)
+        dt = datetime.now(timezone.utc) + timedelta(hours=TIMEZONE_OFFSET)
     return dt.strftime('%Y-%m-%d')
 
 
@@ -345,7 +347,8 @@ def create_digest_html(trending_data: list, date_str: str) -> str:
     
     # Footer
     html_parts.append('<hr/>')
-    html_parts.append(f'<p><small>Generated at {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}</small></p>')
+    beijing_time = datetime.now(timezone.utc) + timedelta(hours=TIMEZONE_OFFSET)
+    html_parts.append(f'<p><small>Generated at {beijing_time.strftime("%Y-%m-%d %H:%M")} Beijing Time (UTC+8)</small></p>')
     if has_ai_summaries:
         html_parts.append('<p><small>AI summaries generated using ZhipuAI GLM-4-Flash model</small></p>')
     
